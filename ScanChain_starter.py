@@ -6,8 +6,8 @@ from cocotb.triggers import Timer
 # Make sure to set FILE_NAME
 # to the filepath of the .log
 # file you are working with
-CHAIN_LENGTH = -1
-FILE_NAME    = ""
+CHAIN_LENGTH = 3
+FILE_NAME    = "adder/adder.log"
 
 
 
@@ -125,6 +125,14 @@ async def step_clock(dut):
     ######################
     # TODO: YOUR CODE HERE 
     ######################
+    dut.clk = 1
+    await Timer(10, units='ns')
+    dut.clk = 0
+    await Timer(10, units='ns')
+
+
+
+
 
     pass
     
@@ -141,8 +149,12 @@ async def input_chain_single(dut, bit, ff_index):
     ######################
     # TODO: YOUR CODE HERE 
     ######################
-
-    pass
+    
+    
+    for i in range(0, ff_index + 1):
+        dut.scan_in = bit
+        step_clock(dut)
+   
     
 #-------------------------------------------------------------------
 
@@ -158,8 +170,15 @@ async def input_chain(dut, bit_list, ff_index):
     ######################
     # TODO: YOUR CODE HERE 
     ######################
+    new_list = bit_list.reverse()
 
-    pass
+    index = 0
+    for i in range (0, len(bit_list)):
+        await input_chain_single(dut, new_list[index], ff_index)
+        index += 1
+        ff_index +=1
+
+    
 
 #-----------------------------------------------
 
@@ -172,7 +191,15 @@ async def output_chain_single(dut, ff_index):
     # TODO: YOUR CODE HERE 
     ######################
 
-    pass       
+    num_shift = CHAIN_LENGTH - ff_index
+    output = 0
+    for i in range(0, num_shift):
+        step_clock(dut)
+        output = dut.scan_out
+    
+    return output
+
+           
 
 #-----------------------------------------------
 
@@ -186,8 +213,12 @@ async def output_chain(dut, ff_index, output_length):
     ######################
     # TODO: YOUR CODE HERE 
     ######################
-
-    pass       
+    output_list = list()
+    index = ff_index
+    for i in range (0, output_length):
+        output_list.append(await output_chain_single(dut, index))
+        index -= 1
+    return output_list       
 
 #-----------------------------------------------
 
@@ -206,4 +237,9 @@ async def test(dut):
     ######################
     # TODO: YOUR CODE HERE 
     ######################
+    # dut.scan_en = 1
+    # test_list = [1,0,1]
+    # await input_chain(dut, test_list, 0)
+    # step_clock(dut)
+    # print(dut.x_out)
 
